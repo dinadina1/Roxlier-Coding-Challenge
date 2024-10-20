@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Home from './components/Home';
 import {Toaster} from 'react-hot-toast'
 import Navbar from './components/Navbar';
+import TransactionDetail from './components/TransactionDetail';
 
 const App = () => {
 
@@ -13,6 +14,7 @@ const App = () => {
     <BrowserRouter>
       <Routes>
         <Route path='/' element={<Home/>} />
+        <Route path='/transaction/:id' element={<TransactionDetail/>} />
       </Routes>
     </BrowserRouter>
     </>

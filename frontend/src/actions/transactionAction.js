@@ -4,9 +4,12 @@ import {
   getStatisticsFail,
   getStatisticsRequest,
   getStatisticsSuccess,
+  getTransactionFail,
+  getTransactionRequest,
   getTransactionsFail,
   getTransactionsRequest,
   getTransactionsSuccess,
+  getTransactionSuccess,
 } from "../slices/transactionSlice";
 
 const API_URL = "http://3.89.158.138:3500";
@@ -56,6 +59,24 @@ export const getStatistics = (month) => async (dispatch) => {
     // Dispatch fail action with error message
     dispatch(
       getStatisticsFail(error?.response?.data?.message || "An error occurred")
+    );
+  }
+};
+
+// get particular transaction
+export const getTransaction = (id) => async (dispatch) => {
+  try {
+    dispatch(getTransactionRequest());
+
+    // Make the API call
+    const { data } = await axios.get(`${API_URL}/api/v1/transaction/${id}`);
+
+    // Dispatch success action with products data
+    dispatch(getTransactionSuccess(data?.transaction));
+  } catch (error) {
+    // Dispatch fail action with error message
+    dispatch(
+      getTransactionFail(error?.response?.data?.message || "An error occurred")
     );
   }
 };

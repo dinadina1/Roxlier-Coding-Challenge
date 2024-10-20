@@ -11,7 +11,8 @@ const transactionSlice = createSlice({
         error: null,
         statistics: null,
         barchart: null,
-        piechart: null
+        piechart: null,
+        transaction: {}
     },
     reducers: {
         getTransactionsRequest(state, action){
@@ -62,6 +63,26 @@ const transactionSlice = createSlice({
                 ...state,
                 error: null
             }
+        },
+        getTransactionRequest(state, action){
+            return {
+                ...state,
+                loading: true
+            }
+        },
+        getTransactionSuccess(state, action){
+            return {
+                ...state,
+                loading: false,
+                transaction: action.payload
+            }
+        },
+        getTransactionFail(state, action){
+            return {
+                ...state,
+                loading: false,
+                error: action.payload
+            }
         }
         
     }
@@ -78,7 +99,10 @@ export const {
     getStatisticsFail,
     getStatisticsRequest,
     getStatisticsSuccess,
-    clearErrors
+    clearErrors,
+    getTransactionFail,
+    getTransactionRequest,
+    getTransactionSuccess
 } = actions;
 
 // export reducer

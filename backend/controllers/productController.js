@@ -239,64 +239,16 @@ exports.combinedProductInfo = catchAsyncError(async (req, res, next) => {
   });
 });
 
-// exports.combinedProductInfo = catchAsyncError(async (req, res, next) => {
-//   const { month } = req.query;
+// get particular transaction - /api/v1/transaction/:id
+exports.getTransaction = catchAsyncError(async (req, res, next) => {
+  const transaction = await Product.findById(req.params.id);
 
-//   const monthObj = {
-//     1: "January",
-//     2: "February",
-//     3: "March",
-//     4: "April",
-//     5: "May",
-//     6: "June",
-//     7: "July",
-//     8: "August",
-//     9: "September",
-//     10: "October",
-//     11: "November",
-//     12: "December",
-//   };
+  if (!transaction) {
+    return next(new ErrorHandler("Transaction not found", 404));
+  }
 
-//   // get statistics for selected month
-//   const statisticsApi = (month) =>
-//     axios.get(`${process.env.BACKEND_URL}/api/v1/statistics?month=${month}`);
-//   // get barchart for selected month
-//   const barchartApi = (month) =>
-//     axios.get(`${process.env.BACKEND_URL}/api/v1/barchart?month=${month}`);
-//   // get piechart for selected month
-//   const piechartApi = (month) =>
-//     axios.get(`${process.env.BACKEND_URL}/api/v1/piechart?month=${month}`);
-
-//   // function to get data from api
-//   const fetchAllData = async (month) => {
-//     try {
-//       // fetch data from 3 api
-//       const [statisticsResponse, barChartResponse, pieChartResponse] =
-//         await Promise.all([
-//           await statisticsApi(month),
-//           await barchartApi(month),
-//           await piechartApi(month),
-//         ]);
-
-//       const combinedResponse = {
-//         statistics: statisticsResponse.data.statistics,
-//         barchart: barChartResponse.data.chart,
-//         piechart: pieChartResponse.data.categories,
-//       };
-
-//       return combinedResponse;
-//     } catch (err) {
-//       return next(new ErrorHandler("Error fetching data", 500));
-//     }
-//   };
-
-//   // call function to fetch data
-//   const response = await fetchAllData(month);
-
-//   if (!response) return next(new ErrorHandler("Error fetching data", 500));
-
-//   res.status(201).json({
-//     month: monthObj[parseInt(month)],
-//     ...response,
-//   });
-// });
+  res.status(200).json({
+    success: true,
+    transaction,
+  });
+});

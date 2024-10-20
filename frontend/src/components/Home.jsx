@@ -8,6 +8,7 @@ import Barchart from './Barchart';
 import StatisticsCard from './StatisticsCard';
 import { FaBox, FaDollarSign, FaChartLine, FaShoppingCart } from 'react-icons/fa';
 import PieChart from './PieChart';
+import { Link } from 'react-router-dom';
 
 const Home = () => {
 
@@ -132,10 +133,14 @@ const Home = () => {
                                                                 <img src={transaction?.image} alt={transaction.title} className="w-16 h-16 object-cover" />
                                                             </td>
                                                             <td className="p-4 font-semibold">
-                                                                {transaction?.title.length > 45 ? `${transaction.title.slice(0, 45)}...` : transaction.title}
+                                                                <Link to={`/transaction/${transaction?._id}`} className='hover:underline'>
+                                                                    {transaction?.title.length > 45 ? `${transaction.title.slice(0, 45)}...` : transaction.title}
+                                                                </Link>
                                                             </td>
                                                             <td className="p-4">
-                                                                {transaction?.description.length > 45 ? `${transaction.description.slice(0, 45)}...` : transaction.description}
+                                                                <Link to={`/transaction/${transaction?._id}`} className='hover:underline'>
+                                                                    {transaction?.description.length > 45 ? `${transaction.description.slice(0, 45)}...` : transaction.description}
+                                                                </Link>
                                                             </td>
                                                             <td className="p-4 font-semibold">{transaction?.price.toFixed(2)}</td>
                                                             <td className="p-4">{transaction?.category}</td>
