@@ -5,11 +5,11 @@ import {
   configureStore,
 } from "@reduxjs/toolkit";
 import { thunk } from "redux-thunk";
-import productsReducer from "./slices/productSlice";
+import transactionReducer from "./slices/transactionSlice";
 
 // reducers
 const reducer = combineReducers({
-  productsState: productsReducer,
+  transactionState: transactionReducer,
 });
 // store
 const store = configureStore(
