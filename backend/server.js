@@ -2,11 +2,12 @@
 const app = require("./app");
 const connectDatabase = require("./config/database");
 
+const PORT = process.env.PORT || 3500;
 // connect database
 connectDatabase();
 
 // start server
-const server = app.listen(process.env.PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(
     `Server listening to the port: ${process.env.PORT} in ${process.env.NODE_ENV}`
   );

@@ -5,9 +5,11 @@ const path = require('path');
 require('dotenv').config({path: path.join(__dirname,"config/config.env")});
 const product = require('./routes/product');
 const errorMiddleware = require('./middleware/error');
+const cors = require('cors');
 
 // parse req.body into json
 app.use(express.json());
+app.use(cors());
 
 // routes
 app.use('/api/v1', product);

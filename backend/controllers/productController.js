@@ -4,6 +4,7 @@ const Product = require("../model/productModel");
 const APIFeatures = require("../utils/apiFeatures");
 const catchAsyncError = require("../middleware/catchAsyncError");
 const ErrorHandler = require("../utils/errorHandler");
+const process = require("process");
 
 // Api for seed data to database from third party api - /api/v1/seed
 exports.seedProducts = catchAsyncError(async (req, res, next) => {
@@ -28,14 +29,11 @@ exports.seedProducts = catchAsyncError(async (req, res, next) => {
 exports.getTransactions = catchAsyncError(async (req, res, next) => {
   // function to build query
   let buildQuery = () => {
-    return new APIFeatures(Product.find(), req.query)
-      .monthWise()
-      .search()
-      .paginate();
+    return new APIFeatures(Product.find(), req.query).monthWise();
   };
 
   // run query
-  let products = await buildQuery().query;
+  let products = await buildQuery().search().paginate().query;
   let count = await buildQuery().query.countDocuments();
 
   // send error if no data found
@@ -192,46 +190,113 @@ exports.combinedProductInfo = catchAsyncError(async (req, res, next) => {
     12: "December",
   };
 
-  // get statistics for selected month
+  // Function to fetch statistics for the selected month
   const statisticsApi = (month) =>
     axios.get(`${process.env.BACKEND_URL}/api/v1/statistics?month=${month}`);
-  // get barchart for selected month
+
+  // Function to fetch bar chart data for the selected month
   const barchartApi = (month) =>
     axios.get(`${process.env.BACKEND_URL}/api/v1/barchart?month=${month}`);
-  // get piechart for selected month
+
+  // Function to fetch pie chart data for the selected month
   const piechartApi = (month) =>
     axios.get(`${process.env.BACKEND_URL}/api/v1/piechart?month=${month}`);
 
-  // function to get data from api
+  // Function to fetch data from all APIs
   const fetchAllData = async (month) => {
     try {
-      // fetch data from 3 api
+      // Fetch data from the three APIs in parallel
       const [statisticsResponse, barChartResponse, pieChartResponse] =
         await Promise.all([
-          await statisticsApi(month),
-          await barchartApi(month),
-          await piechartApi(month),
+          statisticsApi(month),
+          barchartApi(month),
+          piechartApi(month),
         ]);
 
-      const combinedResponse = {
+      return {
         statistics: statisticsResponse.data.statistics,
         barchart: barChartResponse.data.chart,
         piechart: pieChartResponse.data.categories,
       };
-
-      return combinedResponse;
     } catch (err) {
+      // Handle errors from any API call
       return next(new ErrorHandler("Error fetching data", 500));
     }
   };
 
-  // call function to fetch data
+  // Call the function to fetch data
   const response = await fetchAllData(month);
 
-  if (!response) return next(new ErrorHandler("Error fetching data", 500));
+  // Check if the response is empty
+  if (!response) {
+    return next(new ErrorHandler("Error fetching data", 500));
+  }
 
-  res.status(201).json({
+  // Send the combined response
+  res.status(200).json({
     month: monthObj[parseInt(month)],
     ...response,
   });
 });
+
+// exports.combinedProductInfo = catchAsyncError(async (req, res, next) => {
+//   const { month } = req.query;
+
+//   const monthObj = {
+//     1: "January",
+//     2: "February",
+//     3: "March",
+//     4: "April",
+//     5: "May",
+//     6: "June",
+//     7: "July",
+//     8: "August",
+//     9: "September",
+//     10: "October",
+//     11: "November",
+//     12: "December",
+//   };
+
+//   // get statistics for selected month
+//   const statisticsApi = (month) =>
+//     axios.get(`${process.env.BACKEND_URL}/api/v1/statistics?month=${month}`);
+//   // get barchart for selected month
+//   const barchartApi = (month) =>
+//     axios.get(`${process.env.BACKEND_URL}/api/v1/barchart?month=${month}`);
+//   // get piechart for selected month
+//   const piechartApi = (month) =>
+//     axios.get(`${process.env.BACKEND_URL}/api/v1/piechart?month=${month}`);
+
+//   // function to get data from api
+//   const fetchAllData = async (month) => {
+//     try {
+//       // fetch data from 3 api
+//       const [statisticsResponse, barChartResponse, pieChartResponse] =
+//         await Promise.all([
+//           await statisticsApi(month),
+//           await barchartApi(month),
+//           await piechartApi(month),
+//         ]);
+
+//       const combinedResponse = {
+//         statistics: statisticsResponse.data.statistics,
+//         barchart: barChartResponse.data.chart,
+//         piechart: pieChartResponse.data.categories,
+//       };
+
+//       return combinedResponse;
+//     } catch (err) {
+//       return next(new ErrorHandler("Error fetching data", 500));
+//     }
+//   };
+
+//   // call function to fetch data
+//   const response = await fetchAllData(month);
+
+//   if (!response) return next(new ErrorHandler("Error fetching data", 500));
+
+//   res.status(201).json({
+//     month: monthObj[parseInt(month)],
+//     ...response,
+//   });
+// });
