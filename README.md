@@ -51,3 +51,9 @@ Start the frontend application using:
 ```bash
 npm start
 ```
+
+![image](https://github.com/user-attachments/assets/74d147df-84f9-4ee2-a32e-945e6eaf65cb)
+
+![image](https://github.com/user-attachments/assets/82080abf-3286-4884-bd20-43acc6d5794e)
+
+![image](https://github.com/user-attachments/assets/43cba20a-5e77-41f6-8042-3866ebc6d40e)
