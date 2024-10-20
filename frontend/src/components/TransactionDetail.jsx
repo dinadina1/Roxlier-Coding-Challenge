@@ -52,7 +52,13 @@ const TransactionDetail = () => {
                                 <p className="mb-2"><strong>Price:</strong> ${transaction?.price?.toFixed(2)}</p>
                                 <p className="mb-2"><strong>Category:</strong> {transaction?.category}</p>
                                 <p className="mb-2"><strong>Description:</strong> {transaction?.description}</p>
-                                <p className="mb-2"><strong>Sold:</strong> {transaction?.sold ? 'Yes' : 'No'}</p>
+                                <p className="mb-2"><strong>Sold:</strong>
+                                    {transaction?.sold ? (
+                                        <span className='text-green-500 font-semibold'>Yes</span>
+                                    ) : (
+                                        <span className='text-red-500 font-semibold'>No</span>
+                                    )}
+                                </p>
                                 <p className="mb-2"><strong>Date of Sale:</strong> {new Date(transaction?.dateOfSale)?.toLocaleDateString()}</p>
                             </div>
                         </div>
