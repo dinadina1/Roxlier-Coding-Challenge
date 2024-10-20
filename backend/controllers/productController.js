@@ -20,25 +20,218 @@ exports.seedProducts = catchAsyncError(async (req, res, next) => {
 
   res.status(201).json({
     success: true,
-    message: "Products inserted successfully"
+    message: "Products inserted successfully",
   });
 });
 
-// get transaction with search and pagination - /api/v1/transaction
+// get transaction with search and pagination - /api/v1/transaction?search=&month=1,page=1
 exports.getTransactions = catchAsyncError(async (req, res, next) => {
-
   // function to build query
   let buildQuery = () => {
-  return new APIFeatures(Product.find(), req.query).monthWise().search().paginate();
+    return new APIFeatures(Product.find(), req.query)
+      .monthWise()
+      .search()
+      .paginate();
   };
 
   // run query
-  let products = await buildQuery().query;   
-  let count = await buildQuery().query.countDocuments();   
+  let products = await buildQuery().query;
+  let count = await buildQuery().query.countDocuments();
+
+  // send error if no data found
+  if (!products) return next(new ErrorHandler("No data found", 404));
 
   res.status(201).json({
     success: true,
     count,
-    products
-  })
+    products,
+  });
+});
+
+// get statistics - /api/v1/statistics?month=1
+exports.getStatistics = catchAsyncError(async (req, res, next) => {
+  // calculate total sale price
+  let response = await Product.aggregate([
+    {
+      $match: {
+        $expr: {
+          $eq: [{ $month: "$dateOfSale" }, parseInt(req.query.month)],
+        },
+        sold: true,
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        totalSalePrice: { $sum: "$price" },
+      },
+    },
+  ]);
+
+  // calculate sold product count
+  let soldProducts = await Product.countDocuments({
+    $expr: {
+      $eq: [{ $month: "$dateOfSale" }, parseInt(req.query.month)],
+    },
+    sold: true,
+  });
+
+  // calculate un sold product count
+  let unSoldProducts = await Product.countDocuments({
+    $expr: {
+      $eq: [{ $month: "$dateOfSale" }, parseInt(req.query.month)],
+    },
+    sold: false,
+  });
+
+  // send error if no data found
+  if (!response) return next(new ErrorHandler("No data found", 404));
+
+  return res.status(201).json({
+    success: true,
+    statistics: {
+      totalSalePrice: response[0].totalSalePrice,
+      totalSoldItems: soldProducts,
+      totalunSoldItems: unSoldProducts,
+    },
+  });
+});
+
+// barchart api - /api/v1/barchart?month=1
+exports.barChart = catchAsyncError(async (req, res, next) => {
+  // define price ranges
+  let priceRanges = [
+    { range: "0-100", min: 0, max: 100 },
+    { range: "101-200", min: 101, max: 200 },
+    { range: "201-300", min: 201, max: 300 },
+    { range: "301-400", min: 301, max: 400 },
+    { range: "401-500", min: 401, max: 500 },
+    { range: "501-600", min: 501, max: 600 },
+    { range: "601-700", min: 601, max: 700 },
+    { range: "701-800", min: 701, max: 800 },
+    { range: "801-900", min: 801, max: 900 },
+    { range: "900-above", min: 901, max: Infinity },
+  ];
+
+  // get count every price range
+  let response = await Promise.all(
+    priceRanges.map(async ({ range, min, max }) => {
+      let count = await Product.countDocuments({
+        $expr: {
+          $eq: [{ $month: "$dateOfSale" }, parseInt(req.query.month)],
+        },
+        $and: [{ price: { $gte: min } }, { price: { $lte: max } }],
+      });
+
+      return { range, count };
+    })
+  );
+
+  // send error if no data found
+  if (!response) return next(new ErrorHandler("No data found", 404));
+
+  // send response
+  return res.status(201).json({
+    success: true,
+    chart: response,
+  });
+});
+
+// piechart api - /api/v1/piechart?month=1
+exports.pieChart = catchAsyncError(async (req, res, next) => {
+  // find category in db
+  const categories = await Product.aggregate([
+    {
+      $match: {
+        $expr: {
+          $eq: [{ $month: "$dateOfSale" }, parseInt(req.query.month)],
+        },
+      },
+    },
+    {
+      $group: {
+        _id: "$category",
+        noOfItems: { $sum: 1 },
+      },
+    },
+    {
+      $project: {
+        _id: 0,
+        category: "$_id",
+        noOfItems: 1,
+      },
+    },
+  ]);
+
+  // return error if no data found
+  if (!categories) return next(new ErrorHandler("No data found", 404));
+
+  // send response
+  return res.status(201).json({
+    success: true,
+    categories,
+  });
+});
+
+// get combined product info - /api/v1/productInfo?month=1
+exports.combinedProductInfo = catchAsyncError(async (req, res, next) => {
+  const { month } = req.query;
+
+  const monthObj = {
+    1: "January",
+    2: "February",
+    3: "March",
+    4: "April",
+    5: "May",
+    6: "June",
+    7: "July",
+    8: "August",
+    9: "September",
+    10: "October",
+    11: "November",
+    12: "December",
+  };
+
+  // get statistics for selected month
+  const statisticsApi = (month) =>
+    axios.get(`${process.env.BACKEND_URL}/api/v1/statistics?month=${month}`);
+  // get barchart for selected month
+  const barchartApi = (month) =>
+    axios.get(`${process.env.BACKEND_URL}/api/v1/barchart?month=${month}`);
+  // get piechart for selected month
+  const piechartApi = (month) =>
+    axios.get(`${process.env.BACKEND_URL}/api/v1/piechart?month=${month}`);
+
+  // function to get data from api
+  const fetchAllData = async (month) => {
+    try {
+      // fetch data from 3 api
+      const [statisticsResponse, barChartResponse, pieChartResponse] =
+        await Promise.all([
+          await statisticsApi(month),
+          await barchartApi(month),
+          await piechartApi(month),
+        ]);
+
+      const combinedResponse = {
+        statistics: statisticsResponse.data.statistics,
+        barchart: barChartResponse.data.chart,
+        piechart: pieChartResponse.data.categories,
+      };
+
+      return combinedResponse;
+    } catch (err) {
+      return next(new ErrorHandler("Error fetching data", 500));
+    }
+  };
+
+  // call function to fetch data
+  const response = await fetchAllData(month);
+
+  if (!response) return next(new ErrorHandler("Error fetching data", 500));
+
+  res.status(201).json({
+    month: monthObj[parseInt(month)],
+    ...response,
+  });
 });

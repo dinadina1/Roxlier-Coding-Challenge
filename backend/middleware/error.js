@@ -20,9 +20,37 @@ module.exports = (err, req, res, next) => {
 
         // cast error
         if(err.name === "CastError"){
-            let message = `Resource not found: ${err.path}`;
+            message = `Resource not found: ${err.path}`;
             error = new Error(message);
             err.statusCode = 400;
+        }
+
+        // validation error
+        if(err.name === "ValidationError"){
+            message = Object.values(err.errors).map(value => value.message);
+            error = new Error(message);
+            err.statusCode = 400;
+        }
+
+        // 11000 code error
+        if(err.code === 11000){
+            message = `Duplicate ${Object.keys(err.keyValue)} error`;
+            error = new Error(message);
+            err.statusCode = 400;
+        };
+
+        // JSON webtoken error
+        if(err.name === 'JSONWebTokenError'){
+            message = 'JSON Web Token is invalid. Try again';
+            error = new Error(message);
+            err.statusCode = 400;
+        }
+
+        // Token expired error
+        if(err.name = 'TokenExpiredError'){
+            message = `JSON Web Token is expired. Try again`;
+            error = new Error(message)
+            err.statusCode = 400
         }
 
         res.status(err.statusCode).json({
