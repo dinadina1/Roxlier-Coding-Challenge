@@ -1,23 +1,55 @@
-// import required module
-const mongoose = require('mongoose');
-const path = require('path');
-const dotenv = require('dotenv');
+// require necessary packages
+const mongoose = require("mongoose");
+const AWS = require("aws-sdk");
+const path = require("path");
+const dotenv = require("dotenv").config({
+  path: path.join(__dirname, "config", "config.env"),
+});
 
-// set path
-dotenv.config({path: path.join(__dirname,'config/config.env')});
+// function to get parameter from AWS SSM (only used in production)
+const getParameter = async (parameterName) => {
+  const ssm = new AWS.SSM({
+    region: process.env.AWS_REGION || "us-east-1", // AWS region or set in .env
+  });
 
-// function to connect database
-const connectDatabase = () => {
-    mongoose.connect(process.env.MONGO_URI, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    }).then(
-        ()=> console.log(`Database Connected Successfully`)
-    ).catch(err => {
-        console.log(`Database connection failed`,err);
-        process.exit(1); // Exit process if connection is failed
-    })
-}
+  const params = {
+    Name: parameterName, // Name of the parameter in AWS SSM
+    WithDecryption: true, // Decrypt the parameter if encrypted
+  };
+
+  try {
+    const data = await ssm.getParameter(params).promise();
+    return data.Parameter.Value; // Return the value of the parameter
+  } catch (error) {
+    console.error(`Error retrieving parameter ${parameterName}:`, error);
+    throw new Error("Failed to retrieve environment variable from SSM");
+  }
+};
+
+// function to connect to the database
+const connectDatabase = async () => {
+  let mongoUri;
+
+  try {
+    if (process.env.NODE_ENV === "production") {
+      // Retrieve MONGO_URI from AWS SSM if in production
+      mongoUri = await getParameter("MONGO_URI");
+    } else {
+      // Use the local .env MONGO_URI in development
+      mongoUri = process.env.MONGO_URI;
+    }
+
+    await mongoose.connect(mongoUri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+
+    console.log("Database connected successfully");
+  } catch (error) {
+    console.error("Database connection failed:", error);
+    process.exit(1); // Exit the process if the connection fails
+  }
+};
 
 // export function
 module.exports = connectDatabase;
