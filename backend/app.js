@@ -13,13 +13,11 @@ app.use(express.json());
 app.use(
     cors({
       origin: [
-        "http://54.225.3.56",
-        "http://54.225.3.56:3500",
+        "http://3.89.158.138:3500",
+        "http://3.89.158.138",
         "http://localhost:3000",
         "http://localhost:3500",
-      ],
-      credentials: false, // Allow cookies and authorization headers across domains if needed
-      methods: ["GET", "POST", "PUT", "DELETE"], // Define allowed methods as per your API
+      ]
     })
   );
   
