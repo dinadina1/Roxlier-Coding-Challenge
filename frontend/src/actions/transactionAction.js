@@ -9,7 +9,7 @@ import {
   getTransactionsSuccess,
 } from "../slices/transactionSlice";
 
-const API_URL = "http://localhost:3500";
+const API_URL = "http://3.89.158.138:3500";
 
 // get products transactions
 export const getProducts = (page, month, search) => async (dispatch) => {
