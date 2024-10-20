@@ -9,7 +9,8 @@ const cors = require('cors');
 
 // parse req.body into json
 app.use(express.json());
-app.use(cors());
+
+app.use(cors({ origin: ['http://54.225.3.56', 'http://54.225.3.56:3500', 'http://localhost:3000', 'http://localhost:3500'] }));
 
 // routes
 app.use('/api/v1', product);
