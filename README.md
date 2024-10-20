@@ -4,14 +4,14 @@ This App is to show transaction related information with using MERN Stack.
 
 ## API Documentation
 
-For detailed API documentation, please visit: [API Documentation Link](#)
+For detailed API documentation, please visit: https://documenter.getpostman.com/view/33767617/2sAXxWbVkA
 
 ## Installation
 
 1. **Clone the repository**:
 
    ```bash
-   git clone https://github.com/your-username/your-repo-name.git
+   git clone https://github.com/dinadina1/Roxlier-Coding-Challenge.git
 
 2. **Configure Environment Variables**:
 set MONGODB_URI in the config.env file.
