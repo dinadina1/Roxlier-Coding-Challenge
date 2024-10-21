@@ -1,6 +1,9 @@
 # Roxlier Coding Challenge
 
-This App is to show transaction related information with using MERN Stack.
+Roxlier Coding Challenge to show transaction table with pagination, statistics, piechart, barchart.
+
+## Deployed Link
+Please visit http://3.89.158.138/
 
 ## API Documentation
 
